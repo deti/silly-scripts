@@ -2,7 +2,9 @@
 
 Silly scripts for doing random things around
 
-## Features
+* Land of holy [prompts](./prompts.txt) for code assitants
+* [Changelog][./changelog] files
 
-* TODO
+# Scripts
+
 

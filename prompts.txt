@@ -1,0 +1,8 @@
+Note: the project is managed by `uv` tool
+
+run `uv run ruff check --fix src/ tests/` command and fix all issues
+
+run `uv run pytest tests/ -v` and fix all tests
+
+Append summary log for completed actions in this task into the end of today `changelog/YYYY-MM-DD.md` file
+Start section with `#` header, add date and time, and summarized 3-to-7 words title

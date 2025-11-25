@@ -16,6 +16,8 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "click",
+    "ebooklib",
+    "lxml",
 ]
 
 [dependency-groups]
@@ -33,6 +35,7 @@ bugs = "https://github.com/deti/silly-scripts"
 [project.scripts]
 show-settings = "silly_scripts.cli.show_settings:main"
 serve = "silly_scripts.cli.serve:main"
+re-toc-epub = "silly_scripts.cli.re_toc_epub:main"
 
 # Configure hatchling to find packages in src/
 [tool.hatch.build.targets.wheel]
