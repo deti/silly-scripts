@@ -50,6 +50,10 @@ class Settings(BaseSettings):
         default=8000,
         description="API server port number.",
     )
+    deepgram_api_key: str = Field(
+        default="",
+        description="Deepgram API key for speech-to-text transcription.",
+    )
     # Pydantic v2 settings config
     model_config = SettingsConfigDict(
         # Read .env from the project root

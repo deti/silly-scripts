@@ -18,6 +18,7 @@ dependencies = [
     "click",
     "ebooklib",
     "lxml",
+    "deepgram-sdk>=5.3.0",
 ]
 
 [dependency-groups]
@@ -36,6 +37,7 @@ bugs = "https://github.com/deti/silly-scripts"
 show-settings = "silly_scripts.cli.show_settings:main"
 serve = "silly_scripts.cli.serve:main"
 re-toc-epub = "silly_scripts.cli.re_toc_epub:main"
+speech-to-text = "silly_scripts.cli.speech_to_text:main"
 
 # Configure hatchling to find packages in src/
 [tool.hatch.build.targets.wheel]
