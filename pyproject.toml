@@ -38,6 +38,7 @@ show-settings = "silly_scripts.cli.show_settings:main"
 serve = "silly_scripts.cli.serve:main"
 re-toc-epub = "silly_scripts.cli.re_toc_epub:main"
 speech-to-text = "silly_scripts.cli.speech_to_text:main"
+m4b-to-m4a = "silly_scripts.cli.m4b_to_m4a:main"
 
 # Configure hatchling to find packages in src/
 [tool.hatch.build.targets.wheel]
