@@ -54,6 +54,18 @@ class Settings(BaseSettings):
         default="",
         description="Deepgram API key for speech-to-text transcription.",
     )
+    anthropic_api_key: str | None = Field(
+        default=None,
+        description="Anthropic API key for Claude Agent SDK.",
+    )
+    claude_default_model: str = Field(
+        default="sonnet",
+        description="Default model for ask-claude CLI command.",
+    )
+    claude_default_tools: str = Field(
+        default="Read,Glob,Grep",
+        description="Default comma-separated tools for ask-claude CLI command.",
+    )
     # Pydantic v2 settings config
     model_config = SettingsConfigDict(
         # Read .env from the project root

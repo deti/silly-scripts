@@ -92,3 +92,26 @@ def test_invalid_log_level_raises(monkeypatch):
 
     with pytest.raises(ValidationError):
         Settings()
+
+
+def test_claude_defaults(monkeypatch):
+    """Claude settings should have sensible defaults."""
+    for key in ["ANTHROPIC_API_KEY", "CLAUDE_DEFAULT_MODEL", "CLAUDE_DEFAULT_TOOLS"]:
+        monkeypatch.delenv(key, raising=False)
+
+    s = Settings()
+    assert s.anthropic_api_key is None
+    assert s.claude_default_model == "sonnet"
+    assert s.claude_default_tools == "Read,Glob,Grep"
+
+
+def test_claude_env_overrides(monkeypatch):
+    """Claude settings should be overridable via environment variables."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test")
+    monkeypatch.setenv("CLAUDE_DEFAULT_MODEL", "opus")
+    monkeypatch.setenv("CLAUDE_DEFAULT_TOOLS", "Read,Edit,Bash")
+
+    s = Settings()
+    assert s.anthropic_api_key == "sk-ant-test"
+    assert s.claude_default_model == "opus"
+    assert s.claude_default_tools == "Read,Edit,Bash"
