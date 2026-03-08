@@ -249,7 +249,7 @@ class TestCli:
     """Integration tests for the Click CLI."""
 
     def test_help_flag(self) -> None:
-        """--help prints usage without crashing."""
+        """--help prints usage and examples without crashing."""
         runner = CliRunner()
         result = runner.invoke(main, ["--help"])
         assert result.exit_code == 0
@@ -258,6 +258,11 @@ class TestCli:
         assert "--tools" in result.output
         assert "--verbose" in result.output
         assert "--json" in result.output
+        assert "--system-prompt" in result.output
+        assert "--permission-mode" in result.output
+        assert "--working-dir" in result.output
+        assert "Examples:" in result.output
+        assert "ask-claude" in result.output
 
     def test_no_args_prints_error(self) -> None:
         """Running with no args and no stdin prints an error."""
