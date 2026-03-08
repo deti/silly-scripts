@@ -9,6 +9,7 @@ from claude_agent_sdk import (
     ClaudeAgentOptions,
     ClaudeSDKError,
     CLINotFoundError,
+    ProcessError,
     ResultMessage,
     TextBlock,
     ToolUseBlock,
@@ -327,6 +328,42 @@ class TestCli:
 
         assert result.exit_code != 0
         assert "not found" in result.output
+
+    def test_process_error_exits_nonzero(self) -> None:
+        """ProcessError produces non-zero exit code with message."""
+
+        async def mock_query(*, prompt, options):  # noqa: ARG001
+            msg = "process crashed"
+            raise ProcessError(msg)
+            yield  # make it an async generator  # pragma: no cover
+
+        runner = CliRunner()
+        with (
+            patch.dict("os.environ", {"ANTHROPIC_API_KEY": "sk-test-key"}),
+            patch("silly_scripts.cli.ask_claude.query", side_effect=mock_query),
+        ):
+            get_settings.cache_clear()
+            result = runner.invoke(main, ["test prompt"])
+
+        assert result.exit_code != 0
+        assert "process failed" in result.output
+
+    def test_keyboard_interrupt_exits_130(self) -> None:
+        """KeyboardInterrupt produces exit code 130 with message."""
+
+        async def mock_query(*, prompt, options):  # noqa: ARG001
+            raise KeyboardInterrupt
+            yield  # make it an async generator  # pragma: no cover
+
+        runner = CliRunner()
+        with (
+            patch.dict("os.environ", {"ANTHROPIC_API_KEY": "sk-test-key"}),
+            patch("silly_scripts.cli.ask_claude.query", side_effect=mock_query),
+        ):
+            get_settings.cache_clear()
+            result = runner.invoke(main, ["test prompt"])
+
+        assert result.exit_code == 130
 
     def test_invalid_permission_mode_rejected(self) -> None:
         """Invalid permission mode is rejected by Click."""

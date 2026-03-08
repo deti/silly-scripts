@@ -175,14 +175,16 @@ def main(
         allowed_tools=resolved_tools,
         permission_mode=permission_mode,
         cwd=str(working_dir) if working_dir else None,
+        system_prompt=system_prompt,
     )
-    if system_prompt:
-        options.system_prompt = system_prompt
 
     try:
         asyncio.run(
             _run_query(resolved_prompt, options, verbose=verbose, json_mode=json_mode)
         )
+    except KeyboardInterrupt:
+        click.echo("\nInterrupted.", err=True)
+        raise SystemExit(130)  # noqa: B904 — intentional re-raise as SystemExit
     except CLINotFoundError as exc:
         logger.debug("CLI not found", exc_info=True)
         msg = f"Claude Code CLI not found. Is it installed? ({exc})"
@@ -192,6 +194,8 @@ def main(
         msg = f"Claude process failed: {exc}"
         raise click.ClickException(msg) from exc
     except ClaudeSDKError as exc:
+        # TODO: Differentiate auth/rate-limit/network errors when SDK
+        # exposes specific exception types (ADR-001 exit codes 3-5).
         logger.debug("SDK error", exc_info=True)
         msg = f"Claude SDK error: {exc}"
         raise click.ClickException(msg) from exc
@@ -242,6 +246,8 @@ def _print_assistant(message: AssistantMessage, *, verbose: bool) -> None:
     for block in message.content:
         if isinstance(block, TextBlock):
             click.echo(block.text)
+        # NOTE: Deviates from ADR-001 — tool calls hidden by default for
+        # cleaner output. ADR specifies short summaries always on stderr.
         elif isinstance(block, ToolUseBlock) and verbose:
             click.echo(
                 f"[tool:{block.name}] {json.dumps(block.input, indent=2)}",
