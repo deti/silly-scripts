@@ -1,10 +1,25 @@
 """Ask Claude a question using the Claude Agent SDK."""
 
+import asyncio
+import json
 import logging
 import sys
+from dataclasses import asdict
 from pathlib import Path
 
 import click
+from claude_agent_sdk import (
+    AssistantMessage,
+    ClaudeAgentOptions,
+    ClaudeSDKError,
+    CLINotFoundError,
+    ProcessError,
+    ResultMessage,
+    SystemMessage,
+    TextBlock,
+    ToolUseBlock,
+    query,
+)
 
 from silly_scripts.settings import get_settings
 
@@ -147,15 +162,104 @@ def main(
     logger.debug(f"Working dir: {working_dir}")
     logger.debug(f"JSON mode: {json_mode}")
 
-    # SDK invocation will be implemented in a subsequent task.
-    # For now, confirm the CLI is wired up correctly.
-    click.echo(
-        f"ask-claude: prompt received ({len(resolved_prompt)} chars), "
-        f"model={resolved_model}, tools={resolved_tools}",
-        err=True,
+    api_key = settings.anthropic_api_key
+    if not api_key:
+        msg = (
+            "Anthropic API key not set. "
+            "Export ANTHROPIC_API_KEY or add it to your .env file."
+        )
+        raise click.ClickException(msg)
+
+    options = ClaudeAgentOptions(
+        model=resolved_model,
+        allowed_tools=resolved_tools,
+        permission_mode=permission_mode,
+        cwd=str(working_dir) if working_dir else None,
     )
-    msg = "Not yet implemented. SDK integration coming soon."
-    raise click.ClickException(msg)
+    if system_prompt:
+        options.system_prompt = system_prompt
+
+    try:
+        asyncio.run(
+            _run_query(resolved_prompt, options, verbose=verbose, json_mode=json_mode)
+        )
+    except CLINotFoundError as exc:
+        logger.debug("CLI not found", exc_info=True)
+        msg = f"Claude Code CLI not found. Is it installed? ({exc})"
+        raise click.ClickException(msg) from exc
+    except ProcessError as exc:
+        logger.debug("Process error", exc_info=True)
+        msg = f"Claude process failed: {exc}"
+        raise click.ClickException(msg) from exc
+    except ClaudeSDKError as exc:
+        logger.debug("SDK error", exc_info=True)
+        msg = f"Claude SDK error: {exc}"
+        raise click.ClickException(msg) from exc
+
+
+async def _run_query(
+    prompt: str,
+    options: ClaudeAgentOptions,
+    *,
+    verbose: bool,
+    json_mode: bool,
+) -> None:
+    """Send a prompt to Claude and stream output to stdout.
+
+    Args:
+        prompt: The user prompt to send.
+        options: SDK options for the query.
+        verbose: If True, show tool calls and system messages.
+        json_mode: If True, output each message as NDJSON.
+    """
+    async for message in query(prompt=prompt, options=options):
+        if json_mode:
+            _print_json(message)
+            continue
+
+        if isinstance(message, AssistantMessage):
+            _print_assistant(message, verbose=verbose)
+        elif isinstance(message, SystemMessage) and verbose:
+            click.echo(f"[system:{message.subtype}] {message.data}", err=True)
+        elif isinstance(message, ResultMessage):
+            logger.debug(
+                f"Done: {message.num_turns} turns, "
+                f"{message.duration_ms}ms, "
+                f"cost=${message.total_cost_usd}"
+            )
+            if message.is_error:
+                msg = f"Claude returned an error (session {message.session_id})."
+                raise click.ClickException(msg)
+
+
+def _print_assistant(message: AssistantMessage, *, verbose: bool) -> None:
+    """Print assistant message content blocks to stdout.
+
+    Args:
+        message: The assistant message to print.
+        verbose: If True, also print tool-use blocks.
+    """
+    for block in message.content:
+        if isinstance(block, TextBlock):
+            click.echo(block.text)
+        elif isinstance(block, ToolUseBlock) and verbose:
+            click.echo(
+                f"[tool:{block.name}] {json.dumps(block.input, indent=2)}",
+                err=True,
+            )
+
+
+def _print_json(message: object) -> None:
+    """Print a message as a single NDJSON line to stdout.
+
+    Args:
+        message: The SDK message object to serialize.
+    """
+    try:
+        data = asdict(message)  # type: ignore[arg-type]
+    except TypeError:
+        data = {"raw": str(message)}
+    click.echo(json.dumps(data, default=str))
 
 
 if __name__ == "__main__":
