@@ -106,7 +106,7 @@ def process_chapter(
     current_elements = []
     current_word_count = 0
     chunk_index = 1
-    
+
     # Track section range for manifest
     first_section = "Start"
     last_section = "End"
@@ -123,9 +123,9 @@ def process_chapter(
         if isinstance(el, Tag):
             el_text = el.get_text()
             el_words = count_words(el_text)
-            
+
             section_title = get_section_title(el)
-            
+
             # Split condition:
             # 1. We have enough words (at least some minimum or close to max)
             # 2. We hit a major section boundary (e.g., 3.1)
@@ -137,10 +137,10 @@ def process_chapter(
                 # Save current chunk
                 chunk_name = f"{chapter_id}-{chunk_index:02d}"
                 last_section = section_title # The one we JUST hit belongs to NEXT chunk
-                
+
                 # Actually, the section we just hit should probably be the START of the next chunk.
                 # So the current chunk ends BEFORE this element.
-                
+
                 chunks.append(
                     save_chunk(
                         chapter_id,
@@ -152,7 +152,7 @@ def process_chapter(
                         last_section
                     )
                 )
-                
+
                 # Reset for next chunk
                 current_elements = [el]
                 current_word_count = el_words
@@ -212,7 +212,7 @@ def save_chunk(
 
     # Identify images used in this chunk
     chunk_images = extract_images(new_soup)
-    
+
     # Copy images to chunk folder and update references in HTML
     for img_tag in new_soup.find_all("img"):
         src = img_tag.get("src")
@@ -257,7 +257,7 @@ def main(book_path: Path, output_path: Path) -> None:
     OUTPUT_PATH: Directory where processed chunks will be saved.
     """
     logging.basicConfig(level=logging.INFO)
-    
+
     images_dir = book_path / "images"
     if not images_dir.exists():
         logger.warning(f"Images directory not found at {images_dir}")
