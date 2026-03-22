@@ -20,6 +20,7 @@ dependencies = [
     "lxml",
     "deepgram-sdk>=5.3.0",
     "beautifulsoup4>=4.14.3",
+    "claude-agent-sdk",
 ]
 
 [dependency-groups]
@@ -42,6 +43,7 @@ speech-to-text = "silly_scripts.cli.speech_to_text:main"
 m4b-to-m4a = "silly_scripts.cli.m4b_to_m4a:main"
 split-video = "silly_scripts.cli.split_video:main"
 split-book = "silly_scripts.cli.split_book:main"
+analyze-pdf = "silly_scripts.cli.analyze_pdf:main"
 
 # Configure hatchling to find packages in src/
 [tool.hatch.build.targets.wheel]
