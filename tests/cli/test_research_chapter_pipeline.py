@@ -1,4 +1,4 @@
-"""Tests for the research PDF pipeline CLI."""
+"""Tests for the research chapter pipeline CLI."""
 
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from click.testing import CliRunner
 
-from silly_scripts.cli.research_pdf_pipeline import (
+from silly_scripts.cli.research_chapter_pipeline import (
     apply_list_replacements,
     apply_substitutions,
     collect_text,
@@ -21,13 +21,13 @@ from silly_scripts.cli.research_pdf_pipeline import (
 
 
 class TestDiscoverChapters:
-    """Tests for chapter PDF discovery."""
+    """Tests for chapter MD file discovery."""
 
-    def test_finds_chapter_pdfs(self, tmp_path: Path) -> None:
-        """Discovers chapter PDFs and returns sorted numbers."""
-        (tmp_path / "ch02.pdf").touch()
-        (tmp_path / "ch12.pdf").touch()
-        (tmp_path / "ch07.pdf").touch()
+    def test_finds_chapter_md_files(self, tmp_path: Path) -> None:
+        """Discovers chapter MD files and returns sorted numbers."""
+        (tmp_path / "ch02.md").touch()
+        (tmp_path / "ch12.md").touch()
+        (tmp_path / "ch07.md").touch()
         (tmp_path / "prompt01.md").touch()  # not a chapter
 
         result = discover_chapters(tmp_path)
@@ -35,14 +35,19 @@ class TestDiscoverChapters:
         assert result == ["02", "07", "12"]
 
     def test_empty_folder(self, tmp_path: Path) -> None:
-        """Returns empty list when no chapter PDFs exist."""
+        """Returns empty list when no chapter MD files exist."""
         (tmp_path / "prompt01.md").touch()
         assert discover_chapters(tmp_path) == []
 
     def test_pads_single_digit(self, tmp_path: Path) -> None:
         """Pads single-digit chapter numbers with leading zero."""
-        (tmp_path / "ch3.pdf").touch()
+        (tmp_path / "ch3.md").touch()
         assert discover_chapters(tmp_path) == ["03"]
+
+    def test_ignores_pdf_files(self, tmp_path: Path) -> None:
+        """Does not discover PDF files."""
+        (tmp_path / "ch02.pdf").touch()
+        assert discover_chapters(tmp_path) == []
 
 
 class TestSlugify:
@@ -180,28 +185,32 @@ class TestApplyListReplacements:
 class TestPreprocessPrompt:
     """Tests for full prompt preprocessing."""
 
-    def test_prompt01_prepends_pdf_instruction(self) -> None:
-        """Prepends PDF read instruction for prompt 01."""
+    def test_prompt01_inlines_md_content(self, tmp_path: Path) -> None:
+        """Inlines chapter Markdown content for prompt 01."""
+        md_file = tmp_path / "ch07.md"
+        md_file.write_text("# Chapter 7\nSome chapter content.", encoding="utf-8")
+
         result = preprocess_prompt(
             "Analyze chapter [N]",
             1,
             "07",
             Path("/out/ch07"),
-            pdf_path=Path("/input/ch07.pdf"),
+            md_path=md_file,
         )
-        assert result.startswith("Read and analyze the PDF file at")
-        assert "/ch07.pdf" in result
+        assert result.startswith("Here is the chapter content:")
+        assert "# Chapter 7" in result
+        assert "Some chapter content." in result
         assert "Analyze chapter 07" in result
 
-    def test_prompt07_no_pdf_prefix(self) -> None:
-        """Does not prepend PDF instruction for non-01 prompts."""
+    def test_prompt07_no_md_prefix(self) -> None:
+        """Does not inline MD content for non-01 prompts."""
         result = preprocess_prompt(
             "Gap analysis for [N]",
             7,
             "07",
             Path("/out/ch07"),
         )
-        assert not result.startswith("Read and analyze")
+        assert not result.startswith("Here is the chapter content:")
         assert "Gap analysis for 07" in result
 
 
@@ -253,12 +262,14 @@ class TestMainCli:
         """Runs pipeline with valid input folder."""
         (tmp_path / "prompt01.md").write_text("prompt 1")
         (tmp_path / "system-prompt.md").write_text("system prompt")
-        (tmp_path / "ch07.pdf").touch()
+        (tmp_path / "ch07.md").write_text("# Chapter 7")
 
         for i in range(2, 9):
             (tmp_path / f"prompt{i:02d}.md").write_text(f"prompt {i}")
 
-        with patch("silly_scripts.cli.research_pdf_pipeline.asyncio.run") as mock_run:
+        with patch(
+            "silly_scripts.cli.research_chapter_pipeline.asyncio.run"
+        ) as mock_run:
             mock_run.return_value = None
             runner = CliRunner()
             result = runner.invoke(main, [str(tmp_path)])
@@ -273,7 +284,9 @@ class TestMainCli:
         repo_dir.mkdir()
         (input_dir / "prompt01.md").write_text("prompt 1")
 
-        with patch("silly_scripts.cli.research_pdf_pipeline.asyncio.run") as mock_run:
+        with patch(
+            "silly_scripts.cli.research_chapter_pipeline.asyncio.run"
+        ) as mock_run:
             mock_run.return_value = None
             runner = CliRunner()
             result = runner.invoke(main, [str(input_dir), "--repo", str(repo_dir)])
@@ -286,12 +299,12 @@ class TestRunPipeline:
 
     @pytest.mark.asyncio
     async def test_no_chapters_raises(self, tmp_path: Path) -> None:
-        """Raises when no chapter PDFs found."""
+        """Raises when no chapter MD files found."""
         (tmp_path / "system-prompt.md").write_text("system prompt")
         for i in range(1, 9):
             (tmp_path / f"prompt{i:02d}.md").write_text(f"prompt {i}")
 
-        with pytest.raises(Exception, match="No chapter PDFs"):
+        with pytest.raises(Exception, match="No chapter MD files"):
             await run_pipeline(tmp_path, tmp_path.parent)
 
     @pytest.mark.asyncio
@@ -300,10 +313,10 @@ class TestRunPipeline:
         (tmp_path / "system-prompt.md").write_text("system prompt")
         for i in range(1, 9):
             (tmp_path / f"prompt{i:02d}.md").write_text(f"prompt {i}")
-        (tmp_path / "ch07.pdf").touch()
+        (tmp_path / "ch07.md").write_text("# Chapter 7")
 
         with patch(
-            "silly_scripts.cli.research_pdf_pipeline.process_chapter",
+            "silly_scripts.cli.research_chapter_pipeline.process_chapter",
             new_callable=AsyncMock,
             return_value="complete",
         ) as mock_process:

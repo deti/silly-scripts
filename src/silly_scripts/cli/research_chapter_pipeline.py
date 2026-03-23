@@ -1,7 +1,7 @@
 """Automate a chapter-by-chapter research pipeline using Claude Agent SDK.
 
-Processes chapter PDFs through 8 sequential prompts, producing research briefs,
-gap analyses, and feature briefs for a target codebase.
+Processes chapter Markdown files through 8 sequential prompts, producing research
+briefs, gap analyses, and feature briefs for a target codebase.
 """
 
 import asyncio
@@ -57,15 +57,15 @@ PROMPT05_REPLACEMENTS = {
 
 
 def discover_chapters(input_folder: Path) -> list[str]:
-    """Find chapter PDF files and return sorted chapter numbers.
+    """Find chapter Markdown files and return sorted chapter numbers.
 
     Args:
-        input_folder: Path to the input folder containing chapter PDFs.
+        input_folder: Path to the input folder containing chapter MD files.
 
     Returns:
         Sorted list of chapter number strings (e.g., ["02", "03", "07"]).
     """
-    pattern = re.compile(r"^ch(\d+)\.pdf$", re.IGNORECASE)
+    pattern = re.compile(r"^ch(\d+)\.md$", re.IGNORECASE)
     chapters = []
     for f in input_folder.iterdir():
         m = pattern.match(f.name)
@@ -201,7 +201,7 @@ def preprocess_prompt(
     prompt_num: int,
     chapter_num: str,
     output_dir: Path,
-    pdf_path: Path | None = None,
+    md_path: Path | None = None,
     technique_name: str | None = None,
     technique_slug: str | None = None,
 ) -> str:
@@ -212,7 +212,7 @@ def preprocess_prompt(
         prompt_num: Prompt number (1-8).
         chapter_num: Chapter number with leading zero.
         output_dir: Absolute path to chapter output directory.
-        pdf_path: Path to chapter PDF (used for prompt 01).
+        md_path: Path to chapter Markdown file (used for prompt 01).
         technique_name: Extracted technique name.
         technique_slug: Slugified technique name.
 
@@ -224,8 +224,9 @@ def preprocess_prompt(
         text, chapter_num, output_dir, technique_name, technique_slug
     )
 
-    if prompt_num == 1 and pdf_path is not None:
-        text = f"Read and analyze the PDF file at {pdf_path.resolve()}.\n\n{text}"
+    if prompt_num == 1 and md_path is not None:
+        chapter_content = md_path.read_text(encoding="utf-8")
+        text = f"Here is the chapter content:\n\n{chapter_content}\n\n---\n\n{text}"
 
     return text
 
@@ -286,7 +287,7 @@ async def run_research_phase(
     Raises:
         RuntimeError: If a critical prompt fails after retries.
     """
-    pdf_path = input_folder / f"ch{chapter_num}.pdf"
+    md_path = input_folder / f"ch{chapter_num}.md"
     technique_name: str | None = None
     technique_slug: str | None = None
 
@@ -305,7 +306,7 @@ async def run_research_phase(
                 prompt_num,
                 chapter_num,
                 output_dir,
-                pdf_path=pdf_path if prompt_num == 1 else None,
+                md_path=md_path if prompt_num == 1 else None,
                 technique_name=technique_name,
                 technique_slug=technique_slug,
             )
@@ -570,7 +571,7 @@ async def run_pipeline(input_folder: Path, repo_path: Path) -> None:
 
     chapters = discover_chapters(input_folder)
     if not chapters:
-        msg = f"No chapter PDFs found in {input_folder}"
+        msg = f"No chapter MD files found in {input_folder}"
         raise click.ClickException(msg)
 
     logger.info(f"Found {len(chapters)} chapters: {', '.join(chapters)}")
@@ -579,9 +580,9 @@ async def run_pipeline(input_folder: Path, repo_path: Path) -> None:
     results: dict[str, str] = {}
 
     for ch in chapters:
-        pdf_path = input_folder / f"ch{ch}.pdf"
-        if not pdf_path.exists():
-            logger.warning(f"Chapter {ch} PDF not found, skipping")
+        md_path = input_folder / f"ch{ch}.md"
+        if not md_path.exists():
+            logger.warning(f"Chapter {ch} MD file not found, skipping")
             results[ch] = "skipped"
             continue
 
@@ -622,9 +623,9 @@ async def run_pipeline(input_folder: Path, repo_path: Path) -> None:
     help="Path to the target repo. Defaults to parent of input folder.",
 )
 def main(input_folder: Path, repo: Path | None) -> None:
-    """Run the research PDF pipeline on chapter PDFs.
+    """Run the research chapter pipeline on chapter Markdown files.
 
-    INPUT_FOLDER: Path to folder containing chapter PDFs and prompt files.
+    INPUT_FOLDER: Path to folder containing chapter MD files and prompt files.
     """
     logging.basicConfig(
         level=logging.INFO,
