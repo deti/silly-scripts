@@ -2,24 +2,14 @@
 
 ## Project Overview
 
-A collection of standalone CLI utilities ("silly scripts") packaged as a single Python project. Each CLI is a self-contained tool for a specific task (audiobook splitting, EPUB manipulation, speech transcription, etc.), built with Click for CLI parsing and pydantic-settings for configuration. The project uses a src-layout Python package managed by `uv`, with FastAPI providing a minimal API server. Python >=3.14.
+A collection of standalone CLI utilities ("silly scripts") packaged as a single Python project. Each CLI is a self-contained tool for a specific task (audiobook splitting, EPUB manipulation, speech transcription, PDF analysis, research pipelines, etc.), built with Click for CLI parsing and pydantic-settings for configuration. Some CLIs use the Claude Agent SDK for AI-powered analysis. The project uses a src-layout Python package managed by `uv`, with FastAPI providing a minimal API server. Python >=3.14.
 
 ## Development Setup
 
 ```bash
 make init          # Creates venv and installs all deps (uses uv)
-```
-
-Or manually:
-
-```bash
-uv venv && uv sync
-```
-
-Verify the install:
-
-```bash
-uv run pytest tests/ -v
+make test          # Run all tests
+uv run pytest tests/ -v # Run all tests
 ```
 
 Configuration uses a `.env` file at the project root. Copy the template to get started:
@@ -50,6 +40,7 @@ Environment variables are loaded by pydantic-settings with no prefix (e.g., `DEB
 - **Error handling**: CLI-facing errors use `click.ClickException` for user-friendly messages. Internal helpers raise standard Python exceptions.
 - **Logging**: `logger = logging.getLogger(__name__)` at module level. `logging.basicConfig()` called in CLI `main()` functions. Uses f-string log messages.
 - **CLI structure**: Every CLI module follows this order: module docstring, imports, logger, helper functions, `@click.command()` main, `if __name__ == "__main__": main()` guard (with `# pragma: no cover` comment).
+- **Async CLIs**: CLIs that use `claude_agent_sdk` define an `async` helper function and call it via `asyncio.run()` inside the synchronous Click `main()`. The Click command itself stays synchronous.
 - **Formatting**: Ruff handles all formatting. Line length 88, double quotes, 4-space indent. Full config in `pyproject.toml` `[tool.ruff]`.
 
 ## Testing
@@ -67,7 +58,7 @@ uv run pytest tests/ -v -k "test_sanitize"        # by keyword
 - Tests mirror source: `src/silly_scripts/cli/foo.py` -> `tests/cli/test_foo.py`
 - Naming: `test_<what_is_tested>` functions. Test classes (e.g., `TestTranscribeAudio`) group related tests when a module has many.
 - **Mocking**: Use `unittest.mock.patch` and `MagicMock` (not pytest-mock). Patch at the usage site: `"silly_scripts.cli.m4b_to_m4a.subprocess.run"`.
-- **External calls are always mocked**: subprocess (ffmpeg/ffprobe), API clients (Deepgram), servers (uvicorn). Never make real network calls or run real subprocesses in tests.
+- **External calls are always mocked**: subprocess (ffmpeg/ffprobe), API clients (Deepgram, Claude Agent SDK), servers (uvicorn). Never make real network calls or run real subprocesses in tests.
 - **Settings tests**: Use an `autouse` fixture that calls `get_settings.cache_clear()` before and after each test, since settings are cached with `lru_cache`.
 - **CLI testing**: Use `click.testing.CliRunner` for integration tests or call `main.callback()` directly to bypass Click parsing.
 - **Async tests**: Use `@pytest.mark.asyncio` with `httpx.AsyncClient` and `ASGITransport` for FastAPI endpoint tests.
@@ -165,3 +156,15 @@ After completing a task, append a summary to `changelog/YYYY-MM-DD.md` (today's 
 - **Subprocess mocking location**: When mocking `subprocess.run`, patch it at the usage site (`silly_scripts.cli.<module>.subprocess.run`), not at `subprocess.run` globally.
 - **`T20` lint rule is active**: `print()` calls are flagged. Use `click.echo()` in CLIs or `logger` for internal code. Suppress with `# noqa: T201` only when `print` is intentional (like `show_settings`).
 - **`uv run` prefix**: All commands must be run via `uv run` to use the project's virtualenv. Running `pytest` or `ruff` directly will use system-level installs (if any) and may fail.
+- **Async test mocking**: For CLIs using `claude_agent_sdk`, mock `asyncio.run` or the async helper directly. Use `unittest.mock.AsyncMock` for async functions.
+
+## Git Constraints
+
+**Do not merge, rebase, or fast-forward any other branch into any branch except the currently checked-out branch.** All work must stay on the current working branch, and all final changes must end up there. Do not switch the final target to another branch, do not create integration merges elsewhere, and do not ask to merge into main, master, develop, or any other branch. If code from another branch is needed, only bring it into the current checked-out branch.
+
+## Pre-Commit Checklist
+
+```bash
+make lint
+make test
+```

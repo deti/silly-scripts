@@ -210,9 +210,9 @@ class TestOutputFilename:
 
     def test_generates_correct_name(self) -> None:
         """Generates expected filename pattern."""
-        assert output_filename("07", 1) == "ch07-01-chapter-extraction.md"
-        assert output_filename("12", 6) == "ch12-06-research-brief.md"
-        assert output_filename("02", 8) == "ch02-08-feature-briefs.md"
+        assert output_filename("07", 1) == "ch07-01.md"
+        assert output_filename("12", 6) == "ch12-06.md"
+        assert output_filename("02", 8) == "ch02-08.md"
 
 
 class TestCollectText:

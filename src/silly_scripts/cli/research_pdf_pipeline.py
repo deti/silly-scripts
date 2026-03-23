@@ -24,17 +24,6 @@ from claude_agent_sdk import (
 
 logger = logging.getLogger(__name__)
 
-PROMPT_NAMES = {
-    1: "chapter-extraction",
-    2: "current-state-research",
-    3: "technical-deep-dive",
-    4: "formal-definitions",
-    5: "algorithm-specifications",
-    6: "research-brief",
-    7: "gap-analysis",
-    8: "feature-briefs",
-}
-
 PROMPT03_REPLACEMENTS = {
     "[list the key papers from Prompt 2, e.g.:]": (
         "Extract ALL papers from the research above that were cited with "
@@ -251,8 +240,7 @@ def output_filename(chapter_num: str, prompt_num: int) -> str:
     Returns:
         The output filename string.
     """
-    name = PROMPT_NAMES[prompt_num]
-    return f"ch{chapter_num}-{prompt_num:02d}-{name}.md"
+    return f"ch{chapter_num}-{prompt_num:02d}.md"
 
 
 def collect_text(message: object) -> str:
@@ -330,12 +318,17 @@ async def run_research_phase(
             if prompt_num == 1:
                 technique_name = extract_technique_name(response_text)
                 if technique_name is None:
-                    technique_name = prompt_technique_name(chapter_num)
-                technique_slug = slugify(technique_name)
-                logger.info(
-                    f"Chapter {chapter_num} - Technique: {technique_name} "
-                    f"(slug: {technique_slug})"
-                )
+                    logger.warning(
+                        f"Chapter {chapter_num} - Could not extract "
+                        f"technique name; [Technique Name] placeholders "
+                        f"will be left as-is"
+                    )
+                else:
+                    technique_slug = slugify(technique_name)
+                    logger.info(
+                        f"Chapter {chapter_num} - Technique: "
+                        f"{technique_name} (slug: {technique_slug})"
+                    )
 
             out_file = output_dir / output_filename(chapter_num, prompt_num)
             out_file.write_text(response_text, encoding="utf-8")
@@ -513,20 +506,6 @@ async def run_code_analysis_phase(
             logger.info(
                 f"Chapter {chapter_num} - {out_file.name} already written by agent"
             )
-
-
-def prompt_technique_name(chapter_num: str) -> str:
-    """Prompt the user to manually enter the technique name.
-
-    Args:
-        chapter_num: Chapter number for the prompt message.
-
-    Returns:
-        The user-entered technique name.
-    """
-    click.echo(f"\nCould not auto-extract technique name for chapter {chapter_num}.")
-    name = click.prompt("Please enter the technique name")
-    return name.strip()
 
 
 async def process_chapter(
