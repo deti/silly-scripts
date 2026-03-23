@@ -242,6 +242,17 @@ wheels = [
 ]
 
 [[package]]
+name = "html-to-markdown"
+version = "2.29.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/30/c7/e93b067527880dd488263bad17aef1ab857bd386792677f7720694bcf25d/html_to_markdown-2.29.0.tar.gz", hash = "sha256:7ae9ae76b408709366adc99d2c2507dfa2ea84fd19a94e99e5a64e5bb7a7ca0e", size = 312274, upload-time = "2026-03-22T10:09:16.267Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/20/7a8b9ce3be865178f96f99adcb2db2cd46cbcd3f0189f4892101697d798b/html_to_markdown-2.29.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:bfd141cd2a3df50bd93bdd6ec5df364e7232f174ef93bc444746e7e7f9071f2d", size = 8891342, upload-time = "2026-03-22T10:09:10.138Z" },
+    { url = "https://files.pythonhosted.org/packages/47/18/417b074088b5840221ab788089bcd89339e8b8b367bb457ec339c91cc81e/html_to_markdown-2.29.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:db3319e82d2b0c696be6a80dc699d19cdf868a9f859e11bcdb6f8358422cca18", size = 9705068, upload-time = "2026-03-22T10:09:12.191Z" },
+    { url = "https://files.pythonhosted.org/packages/8c/70/cbec633dc9f8904890879fc70813226e9bce4e9900ca78c0251b9ad91e9e/html_to_markdown-2.29.0-cp310-abi3-win_amd64.whl", hash = "sha256:fbec6d3c383cc15a9c36797c73cd51d9d1944ad8713445ae3cc5be8b8baa0125", size = 9328942, upload-time = "2026-03-22T10:09:14.228Z" },
+]
+
+[[package]]
 name = "httpcore"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -653,6 +664,7 @@ dependencies = [
     { name = "deepgram-sdk" },
     { name = "ebooklib" },
     { name = "fastapi" },
+    { name = "html-to-markdown" },
     { name = "lxml" },
     { name = "pydantic-settings" },
     { name = "uvicorn" },
@@ -675,6 +687,7 @@ requires-dist = [
     { name = "deepgram-sdk", specifier = ">=5.3.0" },
     { name = "ebooklib" },
     { name = "fastapi" },
+    { name = "html-to-markdown" },
     { name = "lxml" },
     { name = "pydantic-settings" },
     { name = "uvicorn" },

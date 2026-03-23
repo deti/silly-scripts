@@ -21,6 +21,7 @@ dependencies = [
     "deepgram-sdk>=5.3.0",
     "beautifulsoup4>=4.14.3",
     "claude-agent-sdk",
+    "html-to-markdown",
 ]
 
 [dependency-groups]
@@ -45,6 +46,7 @@ split-video = "silly_scripts.cli.split_video:main"
 split-book = "silly_scripts.cli.split_book:main"
 analyze-pdf = "silly_scripts.cli.analyze_pdf:main"
 research-pdf-pipeline = "silly_scripts.cli.research_pdf_pipeline:main"
+html-to-md = "silly_scripts.cli.html_to_md:main"
 
 # Configure hatchling to find packages in src/
 [tool.hatch.build.targets.wheel]

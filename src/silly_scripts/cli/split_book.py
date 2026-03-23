@@ -252,7 +252,7 @@ def save_chunk(
 @click.argument("output_path", type=click.Path(path_type=Path))
 def main(book_path: Path, output_path: Path) -> None:
     """Analyze a local HTML book and split it into chunks.
-    
+
     BOOK_PATH: Directory containing chNN.html files and an 'images' folder.
     OUTPUT_PATH: Directory where processed chunks will be saved.
     """
