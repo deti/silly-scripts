@@ -132,11 +132,16 @@ def process_chapter(
             if (
                 current_word_count >= MIN_WORDS_PER_CHUNK
                 and section_title
-                and (current_word_count + el_words > MAX_WORDS or current_word_count > MAX_WORDS * 0.7)
+                and (
+                    current_word_count + el_words > MAX_WORDS
+                    or current_word_count > MAX_WORDS * 0.7
+                )
             ):
                 # Save current chunk
                 chunk_name = f"{chapter_id}-{chunk_index:02d}"
-                last_section = section_title # The one we JUST hit belongs to NEXT chunk
+                last_section = (
+                    section_title  # The one we JUST hit belongs to NEXT chunk
+                )
 
                 # Actually, the section we just hit should probably be the START of the next chunk.
                 # So the current chunk ends BEFORE this element.
@@ -149,7 +154,7 @@ def process_chapter(
                         images_dir,
                         output_root,
                         first_section,
-                        last_section
+                        last_section,
                     )
                 )
 
@@ -179,7 +184,7 @@ def process_chapter(
                 images_dir,
                 output_root,
                 first_section,
-                "End"
+                "End",
             )
         )
 
@@ -200,7 +205,9 @@ def save_chunk(
     chunk_dir.mkdir(parents=True, exist_ok=True)
 
     # Create new soup for the chunk
-    new_soup = BeautifulSoup("<html><head><meta charset='utf-8'/></head><body></body></html>", "lxml")
+    new_soup = BeautifulSoup(
+        "<html><head><meta charset='utf-8'/></head><body></body></html>", "lxml"
+    )
     body = new_soup.body
 
     if isinstance(elements, list):
@@ -232,7 +239,9 @@ def save_chunk(
 
     # Create manifest
     word_count = count_words(new_soup.get_text())
-    section_range = f"{start_section} to {end_section}" if end_section else start_section
+    section_range = (
+        f"{start_section} to {end_section}" if end_section else start_section
+    )
     manifest = ChunkManifest(
         source_chapter=source_chapter,
         chunk_name=chunk_name,
@@ -248,7 +257,9 @@ def save_chunk(
 
 
 @click.command()
-@click.argument("book_path", type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.argument(
+    "book_path", type=click.Path(exists=True, file_okay=False, path_type=Path)
+)
 @click.argument("output_path", type=click.Path(path_type=Path))
 def main(book_path: Path, output_path: Path) -> None:
     """Analyze a local HTML book and split it into chunks.
@@ -275,7 +286,9 @@ def main(book_path: Path, output_path: Path) -> None:
         all_chunks.extend(chunks)
         logger.info(f"Created {len(chunks)} chunks from {chapter_file.name}")
 
-    click.echo(f"Successfully processed {len(chapter_files)} chapters into {len(all_chunks)} chunks.")
+    click.echo(
+        f"Successfully processed {len(chapter_files)} chapters into {len(all_chunks)} chunks."
+    )
     click.echo(f"Output saved to: {output_path}")
 
 
