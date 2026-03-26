@@ -296,7 +296,7 @@ class TestMainCLI:
             assert exc_info.value.code == 1
 
         error = f_stderr.getvalue()
-        assert "Error during transcription:" in error
+        assert "Deepgram API key not found" in error
 
     def test_main_file_not_found(self, monkeypatch):
         """Test CLI execution with non-existent file."""
@@ -389,7 +389,7 @@ class TestCLIModuleExecution:
         )
 
         assert proc.returncode == 1
-        assert "Error during transcription:" in proc.stderr
+        assert "Deepgram API key not found" in proc.stderr
 
     def test_cli_module_execution_file_not_found(self, monkeypatch):
         """Test running the CLI module with non-existent file."""

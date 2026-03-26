@@ -45,6 +45,8 @@ split-video = "silly_scripts.cli.split_video:main"
 split-book = "silly_scripts.cli.split_book:main"
 analyze-pdf = "silly_scripts.cli.analyze_pdf:main"
 research-pdf-pipeline = "silly_scripts.cli.research_pdf_pipeline:main"
+claude-usage = "silly_scripts.cli.claude_usage:main"
+split-prompts = "silly_scripts.cli.split_prompts:main"
 
 # Configure hatchling to find packages in src/
 [tool.hatch.build.targets.wheel]
