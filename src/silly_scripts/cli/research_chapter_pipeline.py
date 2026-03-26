@@ -296,6 +296,7 @@ async def run_research_phase(
         system_prompt=system_prompt,
         cwd=str(input_folder),
         allowed_tools=["Read", "WebSearch", "WebFetch"],
+        permission_mode="bypassPermissions",
     )
 
     async with ClaudeSDKClient(options=options) as client:
@@ -476,7 +477,7 @@ async def run_code_analysis_phase(
     options = ClaudeAgentOptions(
         cwd=str(repo_path),
         allowed_tools=["Read", "Write", "Edit", "Bash", "Grep", "Glob"],
-        permission_mode="acceptEdits",
+        permission_mode="bypassPermissions",
     )
 
     for prompt_num in (7, 8):
