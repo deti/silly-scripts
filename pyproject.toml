@@ -50,6 +50,7 @@ html-to-md = "silly_scripts.cli.html_to_md:main"
 claude-usage = "silly_scripts.cli.claude_usage:main"
 split-prompts = "silly_scripts.cli.split_prompts:main"
 plan-and-execute = "silly_scripts.cli.plan_and_execute:main"
+claude-commands = "silly_scripts.cli.claude_commands:main"
 
 # Configure hatchling to find packages in src/
 [tool.hatch.build.targets.wheel]
