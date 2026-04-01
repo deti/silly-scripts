@@ -59,13 +59,13 @@ async def run_fleet_plan_phase(prompt: str) -> tuple[str, str]:
     plan_parts: list[str] = []
 
     fleet_prompt = f"/fleet:fleet-plan create\n\nGoal: {prompt}"
-    # fleet_prompt = f"/fleet plan create\n\nGoal: {prompt}"
 
     try:
         async for message in query(
             prompt=fleet_prompt,
             options=ClaudeAgentOptions(
                 permission_mode="bypassPermissions",
+                setting_sources=["user", "project"],
             ),
         ):
             text = collect_text(message)
@@ -130,6 +130,7 @@ async def run_execute_phase(session_id: str) -> None:
                 resume=session_id,
                 permission_mode="bypassPermissions",
                 allowed_tools=EXECUTION_TOOLS,
+                setting_sources=["user", "project"],
             ),
         ):
             text = collect_text(message)

@@ -1,6 +1,5 @@
 """Tests for the fleet-plan-and-execute CLI command."""
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import click
@@ -10,7 +9,6 @@ from click.testing import CliRunner
 
 from silly_scripts.cli.fleet_plan_and_execute import (
     EXECUTION_TOOLS,
-    _build_plugins,
     analyze_plan,
     collect_text,
     fleet_plan_and_execute,
@@ -18,8 +16,6 @@ from silly_scripts.cli.fleet_plan_and_execute import (
     run_execute_phase,
     run_fleet_plan_phase,
 )
-
-FAKE_PLUGIN_PATH = Path("/fake/fleet/plugin")
 
 
 class TestCollectText:
@@ -109,6 +105,7 @@ class TestRunFleetPlanPhase:
         async def mock_query(**kwargs):
             assert "/fleet:fleet-plan create" in kwargs["prompt"]
             assert kwargs["options"].permission_mode == "bypassPermissions"
+            assert kwargs["options"].setting_sources == ["user", "project"]
             yield assistant_msg
             yield result_msg
 
@@ -164,6 +161,7 @@ class TestRunExecutePhase:
             assert kwargs["options"].resume == "session-abc"
             assert kwargs["options"].permission_mode == "bypassPermissions"
             assert kwargs["options"].allowed_tools == EXECUTION_TOOLS
+            assert kwargs["options"].setting_sources == ["user", "project"]
             assert "approved" in kwargs["prompt"].lower()
             yield result_msg
 
