@@ -15,19 +15,19 @@ from silly_scripts.cli.speech_to_text import main, save_transcript, transcribe_a
 from silly_scripts.settings import Settings, get_settings
 
 
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """Clear the get_settings LRU cache before and after each test."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
 # Ensure the package can be imported from the src/ layout during tests
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_PATH = PROJECT_ROOT / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
-
-
-@pytest.fixture(autouse=True)
-def clear_settings_cache():
-    """Clear settings cache before each test."""
-    get_settings.cache_clear()
-    yield
-    get_settings.cache_clear()
 
 
 @pytest.fixture(autouse=True)
@@ -283,8 +283,8 @@ class TestMainCLI:
 
     def test_main_missing_api_key(self, mock_audio_file, monkeypatch):
         """Test CLI execution with missing API key."""
-        # Ensure API key is not set
-        monkeypatch.delenv("DEEPGRAM_API_KEY", raising=False)
+        # Ensure API key is empty
+        monkeypatch.setenv("DEEPGRAM_API_KEY", "")
 
         f_stdout = io.StringIO()
         f_stderr = io.StringIO()
@@ -370,7 +370,7 @@ class TestCLIModuleExecution:
 
     def test_cli_module_execution_missing_api_key(self, mock_audio_file, monkeypatch):
         """Test running the CLI module with missing API key."""
-        monkeypatch.delenv("DEEPGRAM_API_KEY", raising=False)
+        monkeypatch.setenv("DEEPGRAM_API_KEY", "")
 
         env = os.environ.copy()
         env["PYTHONPATH"] = str(SRC_PATH)

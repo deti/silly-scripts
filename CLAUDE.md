@@ -126,9 +126,11 @@ If any step fails, fix it. Then re-run ALL steps (a lint fix might break a test,
 
 1. Create `src/silly_scripts/cli/<command_name>.py` following the existing CLI structure: module docstring, imports, logger, helper functions, `@click.command()` main, `__main__` guard.
 2. Add the entry point to `pyproject.toml` under `[project.scripts]`: `command-name = "silly_scripts.cli.command_name:main"`.
-3. Run `uv sync` to register the new entry point.
-4. Create `tests/cli/test_<command_name>.py` with tests covering success paths, error paths, and edge cases. Mock all external tool calls.
-5. Run the pre-commit checklist.
+3. Add a shortcut target to the `Makefile` and to its `.PHONY` list.
+4. Add the command description to the `README.md` file.
+5. Run `uv sync` to register the new entry point.
+6. Create `tests/cli/test_<command_name>.py` with tests covering success paths, error paths, and edge cases. Mock all external tool calls.
+7. Run the pre-commit checklist.
 
 ### Adding a new setting
 

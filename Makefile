@@ -8,7 +8,21 @@
 	lint \
 	clean \
 	show-settings \
-	serve
+	serve \
+	analyze-pdf \
+	claude-commands \
+	claude-usage \
+	epub-to-md \
+	fleet-plan-and-execute \
+	html-to-md \
+	m4b-to-m4a \
+	plan-and-execute \
+	re-toc-epub \
+	research-chapter-pipeline \
+	speech-to-text \
+	split-book \
+	split-prompts \
+	split-video
 
 help:  ## Show this help message
 	@echo "Silly scripts for doing random things around"
@@ -52,3 +66,45 @@ show-settings:  ## Show current application settings
 
 serve:  ## Serve API
 	uv run serve
+
+analyze-pdf: ## Analyze a PDF file with Claude
+	uv run analyze-pdf
+
+claude-commands: ## List all available Claude Code slash commands
+	uv run claude-commands
+
+claude-usage: ## Display Claude Code usage information
+	uv run claude-usage
+
+epub-to-md: ## Convert EPUB chapters to Markdown
+	uv run epub-to-md
+
+fleet-plan-and-execute: ## Run prompt through Fleet plan creation and execution
+	uv run fleet-plan-and-execute
+
+html-to-md: ## Convert HTML files to Markdown
+	uv run html-to-md
+
+m4b-to-m4a: ## Split M4B to M4A chapters
+	uv run m4b-to-m4a
+
+plan-and-execute: ## Run prompt through Claude plan and execution
+	uv run plan-and-execute
+
+re-toc-epub: ## Update EPUB table of contents
+	uv run re-toc-epub
+
+research-chapter-pipeline: ## Run research chapter pipeline
+	uv run research-chapter-pipeline
+
+speech-to-text: ## Transcribe audio to text
+	uv run speech-to-text
+
+split-book: ## Split HTML book into chunks
+	uv run split-book
+
+split-prompts: ## Split consolidated prompt chain
+	uv run split-prompts
+
+split-video: ## Split video for Instagram stories
+	uv run split-video
